@@ -1,0 +1,107 @@
+PUNTO 1 
+a.Generar la base de conocimientos inicial:
+
+creeEn(campanita,gabriel).
+creeEn(elMagoDeOz,gabriel).
+creeEn(cavenaghi, gabriel).
+creeEn(conejoDePascua, juan).
+creeEn(campanita,macarena).
+creeEn(losReyesMagos,macarena).
+creeEn(elMagoCapria,macarena).
+
+sueño(gabriel,quiere(ganarLaLoteria, [5,9])).
+sueño(gabriel, quiere(serFutbolista, arsenal)).
+sueño(juan, quiere(serCantante, 100000)).
+sueño(macarena, quiere(serCantante, 10000).
+------------------------------------------------------------------
+PUNTO 2
+a. Saber si una persona es ambiciosa
+esAmbiciosa(Persona):-
+esPersona(Persona),
+findall(Dificultad, dificultadSueñoDe(Persona, Dificultad), Dificultades ),
+sumlist(Dificultades, Total),
+Total > 20.
+
+dificultadSueñoDe(Persona, Dificultad):-
+sueño(Persona,Sueño), 
+dificultadDe(Sueño, Dificultad).
+
+dificultadDe(quiere(serCantante, CantidadDeDiscos), Dificultad):-
+sueño(_,quiere(_,CantidadDeDiscos)),
+dificultadSegun(CantidadDeDiscos, Dificultad).
+
+dificultadSegun(Cantidad, 6):-
+Cantidad > 500000.
+dificultadSegun(Cantidad, 4):-
+Cantidad <= 500000.
+
+dificultadDe(quiere(ganarLaLoteria, NumerosApostados), Dificultad):-
+length(NumerosApostados, CantidadApuestas),
+Dificultad is CantidadApuestas * 10.
+
+dificultadDe(quiere(serFutbolista, Equipo), Dificultad):-
+sueño(_,quiere(_,Equipo)),
+dificultadSegun(Equipo, Dificultad).
+
+dificultadSegun(Equipo, 3):-
+equipoChico(Equipo).
+
+dificultadSegun(Equipo, 16):-
+not(equipoChico(Equipo)).
+------------------------------------------------------------------
+PUNTO 3
+a. Saber si un personaje tiene quimica con una persona.
+
+tienenQuimica(Personaje, Persona):-
+creeEn(Personaje, Persona),
+cumpleCaracteristicas(Persona, Personaje).
+
+cumpleCaracteristicas(Persona, campanita):-
+tieneSueñoFacil(Persona).
+
+tieneSueñoFacil(Persona):-
+dificultadSueñoDe(Persona, Dificultad),
+Dificultad < 5.
+
+cumpleCaracteristicas(Persona, Personaje):-
+not(esAmbiciosa(Persona)),
+todosSueñosPuros(Persona).
+
+todosSueñosPuros(Persona):-
+forall(sueño(Persona, Sueño), esPuro(Sueño)).
+
+esPuro(quiere(serFutbolista,_)).
+esPuro(quiere(serCantante,CantidadDeDiscos)):-
+sueño(_,quiere(_,CantidadDeDiscos)),
+CantidadDeDiscos < 200000.
+------------------------------------------------------------------
+PUNTO 4
+a. Definir si un personaje puede alegrar a una persona.
+ 
+esAmigx(campanita, losReyesMagos).
+esAmigx(campanita, conejoDePascua).
+esAmigx(conejoDePascua, cavenaghi).
+
+esPersonaje(Personaje):-
+creeEn(personaje, _)
+
+puedeAlegrar(Personaje, Persona):-
+esPersonaje(Personaje),
+esPersona(Persona),
+tienenQuimica(Personaje, Persona),
+esCapaz(Personaje).
+
+esCapaz(Personaje):-
+not(estaEnfermo(Personaje)).
+
+esCapaz(Personaje):-
+estaEnfermo(Personaje),
+esAmigo(Personaje, BackUp),
+esCapaz(BackUp).
+
+
+
+
+
+
+

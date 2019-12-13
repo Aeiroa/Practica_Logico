@@ -1,0 +1,139 @@
+rata(remy, gusteaus).
+rata(emile, bar).
+rata(django, pizzeria).
+
+cocina(linguini, ratatouille, 3).
+cocina(linguini, sopa, 5).
+cocina(colette, salmonAsado, 9).
+cocina(horst, ensaladaRusa, 8).
+
+trabajaEn(gusteaus, linguini).
+trabajaEn(gusteaus, colette).
+trabajaEn(gusteaus, skinner).
+trabajaEn(gusteaus, horst).
+trabajaEn(cafeDes2Moulins, amelie).
+
+plato(ensaladaRusa, entrada([papa, zanahoria, arvejas, huevo, mayonesa])).
+plato(bifeDeChorizo, principal(pure, 20)).
+plato(frutillasConCrema, postre(265)).
+
+
+%-----------------------------------
+
+1. inspeccionSatisfactoria/1
+inspeccionSatisfactoria(Restaurante):-
+esRestaurante(Restaurante),
+not(rata(_,Restaurante)).
+
+esRestaurante(Restaurante):-  %uso rata para que se incluya en la lista de restaurantes "pizzeria" y "bar"
+rata(_,Restaurante).
+
+esRestaurante(Restaurante):-
+trabajaEn(Restaurante,_).
+
+2. chef/2
+chef(Empleado, Restaurante):-
+cocina(Empleado,_,_),
+trabajaEn(Empleado,Restaurante).
+
+
+3. chefcito/1
+chefcito(Rata):-
+%esRata(Rata),
+rata(Rata, Restaurante),
+trabajaEn(Restaurante, linguini).
+
+%esRata(Rata):-
+%rata(Rata,_).
+
+4. cocinaBien(Persona, Plato):-
+%sabeCocinar(Persona),
+cocina(Persona, Plato, Experiencia),
+Experiencia > 7.
+
+5. encargadoDe/3
+encargadoDe(Empleado, Plato, Restaurante):-
+esPlato(Plato),
+esRestaurante(Restaurante),
+trabajaYCocinaEn(Restaurante,Empleado),
+not(cocinaMejor(Plato,Empleado,Restaurante,_).
+
+trabajaYCocinaEn()Restaurante,Empleado):-
+sabeCocinar(Empleado),
+trabajaEn(Restaurante,Empleado).
+
+cocinaMejor(Plato, Empleado, Restaurante, Empleado2):-
+trabajaEn(Restaurante,Empleado),
+trabajaEn(Restaurante,Empleado2),
+cocina(Empleado,Plato, Experiencia),
+cocina(Empleado2,Plato, Experiencia2),
+Experiencia > Experiencia2.
+
+esPlato:-
+cocina(_,Plato,_).
+
+esRestaurante(Restaurante):-
+trabajaEn(Restaurante,_).
+
+6. saludable/1
+saludable(Plato):-
+plato(Plato,Tipo),
+caloriasDe(Tipo, Calorias),
+Calorias < 75.
+
+caloriasDe(entrada(Ingredientes),Calorias):-
+lenght(Ingredientes, CantidadIngredientes),
+Calorias is CantidadIngredientes * 15.
+
+caloriasDe(principal(Guarnicion,Minutos), Calorias):-
+caloriasPorGuarnicion(Guarnicion, CaloriasExtra),
+Calorias is 5 * Minutos + CaloriasExtra.
+
+caloriasPorGuarnicion(papasFritas, 50).
+caloriasPorGuarnicion(pure, 20).
+caloriasPorGuarnicion(ensalada, 0).
+
+caloriasDe(postre(Calorias), Calorias).
+
+7. criticaPositiva/2
+criticaPositiva(Restaurante, Critico),
+inspeccionSatisfactoria(Restaurante),
+criticaAl(Restaurante, Critico).
+
+criticaAl(Restaurante, antonEgo):-
+esEspecialistaEn(ratatouille, Restaurante).
+
+esEspecialistaEn(Plato, Restaurante):-
+esPlato(Plato),
+forall(chef(Empleado, Restaurante), cocinaBien(Empleado,Plato)).
+
+criticaAl(Restaurante, christophe):-
+findall(Empleado, chef(Empleado, Restaurante), Chefs),
+lenght(Chefs, Cantidad),
+Cantidad >= 3.
+
+criticaAl(Restaurante, cormillot):-
+forall(cocina(Empleado, Plato, _), (saludable(Plato),todasLasEntradasTienenZanahoria(Restaurante))).
+
+todasLasEntradasTienenZanahoria(Restaurante):-
+forall((entradaDelRestaurante(Entrada, Restaurante),tieneZanahoria(Entrada)).
+
+entradaDelRestaurante(Plato, Restaurante):-
+chef(Empleado, Restaurante),
+cocina(Chef, Plato, _),
+plato(Plato, entrada(_)).
+
+tieneZanahoria(Plato):-
+plato(Plato, entrada(Ingredientes)),
+member(zanahoria,Ingredientes).
+
+
+
+
+
+
+
+
+
+
+
