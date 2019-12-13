@@ -48,6 +48,9 @@ equipoChico(Equipo).
 
 dificultadSegun(Equipo, 16):-
 not(equipoChico(Equipo)).
+
+equipoChico(arsenal).
+equipoChico(aldosivi)
 ------------------------------------------------------------------
 PUNTO 3
 a. Saber si un personaje tiene quimica con una persona.
@@ -87,7 +90,7 @@ creeEn(personaje, _)
 
 puedeAlegrar(Personaje, Persona):-
 esPersonaje(Personaje),
-esPersona(Persona),
+sueño(Persona,_),
 tienenQuimica(Personaje, Persona),
 esCapaz(Personaje).
 
