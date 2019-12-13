@@ -1,0 +1,236 @@
+% Relaciona al dueño con el nombre del juguete
+y la cantidad de años que lo ha tenido
+dueño(andy, woody, 8).
+dueño(sam, jessie, 3).
+
+% Relaciona al juguete con su nombre
+% los juguetes son de la forma:
+
+% deTrapo(tematica)
+% deAccion(tematica, partes)
+% miniFiguras(tematica, cantidadDeFiguras)
+% caraDePapa(partes)
+
+juguete(woody, deTrapo(vaquero)).
+juguete(jessie, deTrapo(vaquero))
+juguete(buzz, deAccion(espacial, [original(casco)])).
+juguete(soldados, miniFiguras(soldado, 60)).
+juguete(monitosEnBarril, miniFiguras(mono, 50)).
+juguete(señorCaraDePapa,
+caraDePapa([ original(pieIzquierdo),
+original(pieDerecho),
+repuesto(nariz) ])).
+
+% Dice si un juguete es raro
+esRaro(deAccion(stacyMalibu, 1, [sombrero])).
+
+% Dice si una persona es coleccionista
+esColeccionista(sam).
+-----------------------------------------------------------------------------------------------
+1. a. tematica/2: relaciona a un juguete con su temática. La temática de los cara de papa es
+caraDePapa.
+
+tematica(NombreDelJuguete, Tematica):-
+juguete(NombreDelJuguete, Juguete),
+tematicaSegun(Juguete, Tematica).
+
+tematicaSegun(deTrapo(Tematica), Tematica).
+tematicaSegun(deAccion(Tematica, _), Tematica).
+tematicaSegun(miniFiguras(Tematica,_), Tematica).
+tematicaSegun(caraDePapa(_,_,_), caraDePapa).
+
+------------------------------------------------------------------------------------------------
+1. b. esDePlastico/1: Nos dice si el juguete es de plástico, lo cual es verdadero sólo para las
+miniFiguras y los caraDePapa.
+
+esDePlastico(NombreDelJuguete):-
+juguete(NombreDelJuguete, Juguete),
+plastico(Juguete).
+
+plastico(minifiguras(_,_)).
+plastico(caraDePapa(_,_,_)).
+
+-----------------------------------------------------------------------------------------------
+1. c. esDeColeccion/1:Tanto lo muñecos de acción como los cara de papa son de colección si
+son raros, los de trapo siempre lo son, y las mini figuras, nunca. 
+
+% Las minifiguras, pueden llegar a ser raras? Si es así, esta resolución no sirve.
+
+esDeColeccion(NombreDelJuguete):-
+juguete(NombreDelJuguete, Juguete),
+esEspecial(Juguete).
+
+esEspecial(deTrapo(_)).
+esEspecial(Juguete):-
+esRaro(Juguete).
+
+--------------------- Resolución contemplando la posibilidad de que las miniFiguras puedan ser raras.
+
+esEspecial(deTrapo(_)).
+esEspecial(Juguete):-
+esRaro(deAccion(_,_,_)).
+esEspecial(Juguete):-
+esRaro(caraDePapa(_,_,_))
+
+-----------------------------------------------------------------------------------------------
+2. amigoFiel/2: Relaciona a un dueño con el nombre del juguete que no sea de plástico que tiene
+hace más tiempo. Debe ser completamente inversible.
+
+amigoFiel(Dueño, NombreDelJuguete):-
+dueño(Dueño,NombreDelJuguete,Tiempo),
+not(esDePlastico(NombreDelJuguete)), 
+not(hayMasViejoQue(NombreDelJuguete, Dueño, Tiempo, _)).
+
+hayMasViejoQue(NombreDelJuguete, Dueño, Tiempo, Tiempo2):-
+dueño(Dueño, NombreDelJuguete, Tiempo),
+dueño(Dueño, _, Tiempo2),
+Tiempo > Tiempo2.
+
+-----------------------------------------------------------------------------------------------
+3. superValioso/1: Genera los nombres de juguetes de colección que tengan todas sus piezas
+originales, y que no estén en posesión de un coleccionista.
+
+superValioso(NombreDelJuguete):-
+esDeColeccion(NombreDelJuguete),
+todasPiezasOriginales(NombreDelJuguete),
+not(enPosesionDeColeccionista(NombreDelJuguete)).
+
+todasPiezasOriginales(NombreDelJuguete):-
+juguete(NombreDelJuguete, Juguete)
+tienePiezas(Juguete,Piezas)
+forall(member(Pieza,Piezas), esOriginal(Pieza)).
+
+tienePiezas(deAccion(_,[Piezas]), Piezas).
+tienePiezas(caraDePapa([Piezas]), Piezas).
+
+esOriginal(original(_)).
+
+enPosesionDeColeccionista(NombreDelJuguete):-
+dueño(Dueño, NombreDelJuguete, _),
+esColeccionista(Dueño).
+
+-----------------------------------------------------------------------------------------------
+4. dúoDinámico/3: Relaciona un dueño y a dos nombres de juguetes que le pertenezcan que
+hagan buena pareja. Dos juguetes distintos hacen buena pareja si son de la misma temática.
+Además woody y buzz hacen buena pareja. Debe ser complemenente inversible.
+
+duoDinamico(Dueño, NombreDelJuguete1, NombreDelJuguete2):-
+esDueñoDe(NombreDelJuguete1, NombreDelJuguete2, Dueño),
+hacenBuenaPareja(NombreDelJuguete1, NombreDelJuguete2).
+
+esDueñoDe(NombreDelJuguete1, NombreDelJuguete2, Dueño):-
+dueño(Dueño, NombreDelJuguete1, _),
+dueño(Dueño, NombreDelJuguete2, _),
+NombreDelJuguete1 =\ NombreDelJuguete2.
+
+hacenBuenaPareja(woody, buzz).
+hacenBuenaPareja(NombreDelJuguete1, NombreDelJuguete2):-
+tematica(NombreDelJuguete1, Tematica),
+tematica(NombreDelJuguete2, Tematica).
+
+-----------------------------------------------------------------------------------------------
+5!!!!!. felicidad/2:Relaciona un dueño con la cantidad de felicidad que le otorgan todos sus
+juguetes:
+● las minifiguras le dan a cualquier dueño 20 * la cantidad de figuras del conjunto
+● los cara de papas dan tanta felicidad según que piezas tenga: las originales dan 5, las de
+repuesto,8.
+● los de trapo, dan 100
+● Los de accion, dan 120 si son de coleccion y el dueño es coleccionista. Si no dan lo mismo
+que los de trapo.
+Debe ser completamente inversible.
+
+felicidad(Dueño, CantidadFelicidad):-
+dueño(dueño,_,_),
+felicidadQueRecibeUn(Dueño, CantidadFelicidad).
+
+felicidadQueRecibeUn(Dueño, CantidadFelicidad)
+findall(Alegria, (dueño(Dueño,Juguete,_), felicidadQueOtorga(Juguete, Alegria)), Alegrias),
+sumlist(Alegrias, CantidadFelicidad).
+
+felicidadQueOtorga(minifiguras(_, CantidadDeFiguras), Alegria):-
+Alegria is 20 * CantidadDeFiguras.
+
+felicidadQueOtorga(deTrapo(_), 100).
+
+felicidadQueOtorga(Juguete, Alegria):-
+juguete(NombreDelJuguete, deAccion(_,_))
+alegriaSegun(NombreDelJuguete, Alegria):-
+
+alegriaSegun(NombreDelJuguete, 100):-
+not(esDeColeccionYLoTieneColeccionista(NombreDelJuguete)).
+alegriaSegun(NombreDelJuguete, 120):-
+esDeColeccionYLoTieneColeccionista(NombreDelJuguete).
+
+esDeColeccionYLoTieneColeccionista(NombreDelJuguete):-
+esDeColeccion(NombreDelJuguete),
+enPosesionDeColeccionista(NombreDelJuguete).
+
+● los cara de papas dan tanta felicidad según que piezas tenga: las originales dan 5, las de  
+repuesto,8.
+
+% No encuentro solución además de FINDALL + MEMBER
+
+felicidadQueOtorga(caraDePapa([Piezas]), Alegria):-
+findall(Valor, felicidadPorPieza(Piezas, _, Valor), Valores),
+sumlist(Valores, Alegria).
+
+felicidadPorPieza(Piezas, Pieza, Valor):-
+member(Pieza, Piezas),
+valorDePieza(Pieza, Valor).
+
+valorDePieza(original(_), 5).
+valorDePieza(repuesto(_), 8).
+
+-----------------------------------------------------------------------------------------------
+6. puedeJugarCon/2: Relaciona a alguien con un nombre de juguete cuando puede jugar con él.
+Esto ocurre cuando:
+● este alguien es el dueño del juguete
+● o bien, cuando exista otro que pueda jugar con este juguete y pueda prestárselo
+Alguien puede prestarle un juguete a otro cuando es dueño
+de una mayor cantidad de juguetes.
+
+puedeJugarCon(Alguien, NombreDelJuguete):-
+dueño(Alguien, NombreDelJuguete, _)
+
+puedeJugarCon(Alguien, NombreDelJuguete):-
+dueño(Otro, NombreDelJuguete),
+puedePrestarA(Alguien, Otro, NombreDelJuguete).
+
+puedePrestarA(Alguien, Dueño, NombreDelJuguete):-
+puedeJugarCon(Dueño, NombreDelJuguete)
+esDueñoDeMásJuguetesQue(Alguien, Dueño).
+
+esDueñoDeMásJuguetesQue(Alguien, Dueño):-
+cantidadDeJuguetesDe(Dueño, Cantidad1),
+cantidadDeJuguetesDe(Alguien, Cantidad2),
+Cantidad1 > Cantidad2.
+
+cantidadDeJuguetesDe(Persona, Cantidad):-
+findall(Juguete, dueño(Persona,Juguete,_), Juguetes),
+length(Juguetes, Cantidad).
+
+-----------------------------------------------------------------------------------------------
+7!!!!. podriaDonar/3: relaciona a un dueño, una lista de
+juguetes propios y una cantidad de felicidad cuando entre
+todos los juguetes de la lista le generan menos que esa
+cantidad de felicidad. Debe ser completamente inversible.
+
+%Problema con FINDALL + MEMBER
+
+podriaDonar(Dueño, JuguetesPropios, CantidadDeFelicidad):-
+felicidad(Dueño, CantidadDeFelicidad),
+esDueño(JuguetesPropios, Dueño),
+felicidadDeJuguetes(JuguetesPropios, FelicidadGenerada),
+CantidadDeFelicidad > FelicidadGenerada.
+
+esDueño(JuguetesPropios, Dueño):-
+forall(member(Juguete, JuguetesPropios), dueño(Dueño, Juguetes,_)).
+
+felicidadDeJuguetes(JuguetesPropios, FelicidadGenerada):-
+findall(Valor, felicidadDe(JuguetesPropios,_,Valor), Valores)
+sumlist(Valores, FelicidadGenerada).
+
+felicidadDe(ListaJuguetes, Juguete, Valor):-
+juguete(_, Juguete),
+member(Juguete, ListaJuguetes),
+felicidadQueOtorga(Juguete, Valor).
