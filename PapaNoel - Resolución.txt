@@ -1,0 +1,196 @@
+%persona(Nombre, Edad).
+
+persona(laura, 24).
+persona(federico,31).
+persona(maria,23).
+persona(jacobo, 45).
+persona(enrique, 49)
+persona(andrea, 38).
+persona(gabriela, 4).
+persona(gonzalo, 23).
+persona(alejo, 20).
+persona(andres, 11).
+persona(ricardo, 39).
+persona(ana, 7).
+persona(juana, 15).
+
+% quiere(Quién, Quiere).
+
+
+quiere(andres, bloques([piezaT, pieza, cubo, piezaChata])).
+quiere(maria, bloques([piezaT, piezaT]).
+quiere(alejo, bloques([piezaT]).
+quiere(andres, juguete(maxSteel, 150)).
+quiere(juana, juguete(barbie, 175)).
+quiere(garbiela(jueguete(gabeneitor2000, 5000))).
+quiere(federico, abrazo).
+quiere(enrique, abrazo).
+quiere(laura, abrazo).
+quiere(gonzalo, abrazo).
+
+% presupuesto(Quién, Presupuesto).
+
+presupuesto(jacobo, 20).
+presupuesto(enrique, 2311).
+presupuesto(ricardo, 154).
+presupuesto(andrea, 100).
+presupuesto(laura, 2000).
+
+% accion(Quién, HIzo).
+
+accion(andres, travesura(3)).
+accion(andres, ayudar(ana)).
+accion(ana, golpear(andres)).
+accion(ana, travesura(1)).
+accion(maria, ayudar(federico)).
+accion(maria, favor(juana)).
+accion(juana, favor(maria)).
+accion(federico, golpear(enrique)).
+accion(gonzalo, golpear(alejo)).
+accion(alejo, travesura(4)).
+
+% padre(Padrx, Hijx).
+
+padre(jacobo, ana).
+padre(jacobo, juana).
+padre(enrique, federico).
+padre(ricardo, maria).
+padre(andrea, andres).
+padre(laura, gabriela).
+
+%----------------------------------------------------------------------
+
+- Lxs niñxs creen en papa noel, y una persona es considerada niñx si tiene menos de 13 años. Federico también cree en él.
+
+creeEnPapaNoel(federico).
+creeEnPapaNoel(Niñx):-
+persona(Niñx, Edad),
+Edad < 13.
+
+%----------------------------------------------------------------------
+1. buenaAccion/1 nos dice si una accion es meritoria de reconocimiento. Los favores y ayudas son buenas.
+Las travesuras, por lo general, no son buenas pero si el nivel de travesura no es mayor a 3, se lo deja pasar.
+Golpear nunca es una buena acción.
+
+buenaAccion(favor(_)).
+buenaAccion(ayuda(_)).
+buenaAccion(travesuras(Nivel)):-
+accion(_,travesura(Nivel)),
+Nivel =< 3.
+
+%----------------------------------------------------------------------
+2. sePortoBien/1 se cumple para alguien que jamas realizó una mala accion.
+
+sePortoBien(Persona):-
+persona(Persona, _)
+not(realizoMalaAccion(Persona,_))
+
+realizoMalaAccion(Persona,Accion):-
+persona(Persona, Accion),
+malaAccion(Accion).
+
+malaAccion(Accion)
+not(buenaAccion(Accion).
+
+%----------------------------------------------------------------------
+3. malcriador/1 es verdadero para un padre si todos sus hijos son malcriados.
+Malcriadas son aquellas personas que no realizaron ninguna buena accion, o bien que no creen en papa noel.
+
+malcriador(Padre):-
+padre(Padre,_),
+forall(padre(Padre,Hijx), malcriado(Hijx))
+
+malcriado(Alguien):-  % ¿llega la variable "Hijx" ya unificada en malcriador?
+not(creeEnPapaNoel(Alguien)).
+malcriado(Alguien):-
+forall(accion(Alguien, Accion), malaAccion(Accion)).
+%Para toda accion que realizó una persona, la accion es mala.
+
+%----------------------------------------------------------------------
+4. puedeCostear/2 nos relaciona a un padre con su hijx si puede pagar todos los regalos que su hijx quiere.
+- Sabemos que cada juguete tiene un precio.
+- Los bloques cuentan 3 por parte.
+- Los abrazos son gratis, no se le niegan a nadie.
+
+puedeCostear(Padre, Hijx):-
+padre(Padre, Hijx),
+costoTotalJuguetes(Hijx, Costo),
+papaPuede(Padre, Costo).
+
+costoTotalJuguetes(Hijx, Costo):-
+quiere(Hijx, Regalo),
+findall(Precio, precioDe(Regalo, Precio), Precios),
+sumlist(Precios, Costo).
+
+precioDe(juguete(_,Precio), Precio).
+precioDe(bloques([Piezas]),Precio):-
+length(Piezas, CantidadPiezas),
+Precio is CantidadPiezas * 3
+precioDe(abrazo, 0).
+
+papaPuede(Padre, Costo):-
+presupuesto(Padre, Presupuesto),
+Presupuesto >= Costo.
+
+%----------------------------------------------------------------------
+5. regaloCandidatoPara/2 nos dice si un regalo es candidato para una persona. Para recibirlo, debe haberse portado bien, 
+su padre debe ser capaz de pagar el costo de ese regalo, y la persona debe querer el regalo en cuestión.
+Por último, pero no menos importante, la persona debe creer en papá noel.
+
+regaloCandidatoPara(Persona, Regalo):-
+sePortoBien(Persona),
+quiere(Persona, Regalo),
+creeEnPapaNoel(Persona),
+padre(Padre, Persona),
+precioDe(Regalo, Precio),
+papaPuede(Padre, Precio).
+
+%----------------------------------------------------------------------
+6. regaloQueRecibe/2 relaciona a una persona con la lista de regalos que recibe en navidad.
+- Si el padre del niño puede costear sus regalos, entonces recibe todos los que quiere.
+- Si el padre no puede afrontar los gastos, pasa una de dos cosas.
+ + El niño recibe un par de medias, una gris y una blanca, si se portó bien.
+ + Si hizo al menos dos malas acciones, recibe unicamente carbon.
+ + En cualquier otro caso, no recibe regalos.
+
+regaloQueRecibe(Persona, ListaRegalos):-
+ puedeCostear(_, Persona),
+ findall(Regalo, quiere(Persona, Regalo), ListaRegalos).
+
+regaloQueRecibe(Persona, ListaRegalos):-
+  padre(Padre, Persona),
+  not(puedeCostear(Padre, Persona)), % No sé si es necesario
+  regalosSimples(Persona, Regalos).
+
+regalosSimples(Persona, [mediaGris, mediaBlanca]):-
+sePortoBien(Persona).
+
+regalosSimples(Persona, [carbon]):-
+realizoMalaAccion(Persona, UnaAccion),
+realizoMalaAccion(Persona, OtraAccion),
+UnaAccion =\ OtraAccion.
+
+%----------------------------------------------------------------------
+7. sugarDaddy/1 es verdadero para un padre si todos sus hijos quieren regalos caros o que valen la pena.
+Actualmente un regalo es caro si cuesta mas de $500. Además:
+- Un juguete vale la pena si es buzz o woody.
+- Los bloques si tienen un cubo.
+- Los abrazos nunca valen la pena.
+
+sugarDaddy(Padre):-
+padre(Padre,_)
+forall(padre(Padre, Hijo), quiereRegaloEspecial(Hijo)).
+
+quiereRegaloEspecial(Persona):-
+quiere(Persona, Regalo),
+valeLaPena(Regalo).
+
+valeLaPena(juguete(woody,_)).
+valeLaPena(juguete(buzz,_)).
+valeLaPena(bloque([Piezas])):-
+member(cubo, Piezas).
+
+quiereRegaloEspecial(Persona):-
+quiere(Persona, Regalo),
+precioDe(Regalo, Precio),
+Precio > 500
