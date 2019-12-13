@@ -1,0 +1,121 @@
+%operativo(nombre, plazoEnDias, [materiales])
+operativo(tarjetaDeNavidad, 10, [disfrazPapaNoel, armaJuguete, maletinConDineroFalso]).
+operativo(seguroDeDesempleo, 30, [vaca, mariachis]).
+operativo(elHeroe, 20, [autoPolicia, ingeniero]).
+
+%precio(material, monto)
+precio(disfrazPapaNoel, 1000).
+precio(armaJuguete, 500).
+precio(maletinConDineroFalso, 850).
+precio(vaca, 10000).
+precio(mariachis, 6000).
+precio(autoPolicia, 80000).
+precio(ingeniero, 0).
+
+-----------------------------------------------------------------------------------------
+1) Se desean agregar nuevos operativos a la base de conocimiento. El último que se realizó fue
+queArgentinaClasifique, el cual tenía un plazo de 10 días para realizarse, y contó con cerveza y el alquiler
+de un boliche. La cerveza cuesta $50000 (fue mucha cerveza) y el boliche $100000.
+
+operativo(queArgentinaClasifique, 10, [cerveza, boliche]).
+precio(cerveza, 50000).
+precio(boliche, 100000).
+-----------------------------------------------------------------------------------------
+2) esBarato/1: un operativo es barato si ningún material del mismo cuesta más de $1000.
+? esBarato(tarjetaDeNavidad).
+True
+? esBarato(elHeroe).
+False
+
+esBarato(Operativo):-
+operativo(Operativo,_,Materiales),
+forall(operativo(member(Material, Materiales), not(esCaro(Material))).
+
+esCaro(Material):-
+precio(Material, Precio),
+Preco > 1000.
+
+----------------------------------------------------------------------------------------
+3) vanDeLaMano/2: nos dice si dos operativos se pueden hacer juntos. Esto ocurre si ambos operativos tienen
+un ingeniero como material, o bien si ambos son baratos.
+
+vanDeLaMano(Operativo, Operativo2):-
+tieneIngeniero(Operativo),
+tieneIngeniero(Operativo2).
+
+tieneIngeniero(Operativo):-
+operativo(Operativo,_,Materiales),
+member(ingeniero, Materiales).
+
+vanDeLaMano(Operativo,Operativo2):-
+esBarato(Operativo),
+esBarato(Operativo2).
+
+4) aniosDeExperiencia/1: nos dice los años que invirtieron los simuladores realizando operativos. El mismo se
+obtiene a partir de los plazos en días que tomo cada operativo.
+Cuidado: la suma de los plazos te va a dar en días y necesitamos los años de experiencia.
+
+aniosDeExperiencia(Años):-
+findall(Dias,operativo(_,Dias,_),ConjuntoDeDias),
+sumlist(ConjuntoDeDias, TotalDias),
+Años is TotalDias / 365.
+
+5) Agregamos a nuestra base de conocimiento el protagonista de cada operativo. De los personajes sabemos
+su nombre y su rol, donde el rol será uno de los siguientes:
+
+
+%planificador(CoeficienteIntelectual).
+%tecnico(Recursos).
+%caracterizador(Apodo, CantidadDePersonajesCaracterizados).
+%investigador(HorasDeSueño).
+%extra(CantidadDeMisionesEnLasQueColaboro, Rol).
+personaje(santos, planificador(115)).
+personaje(lamponne, tecnico([computadora, camara,
+grabadora])).
+personaje(ravenna, caracterizador(cozzeti, 87)).
+personaje(medina, investigador(3)).
+personaje(jorge, extra(1, imitador)).
+protagonista(santos, tarjetaDeNavidad).
+protagonista(lamponne, seguroDeDesempleo).
+protagonista(ravenna, elHeroe).
+protagonista(jorge, marcela&Paul).
+
+fueBienRealizado/1: nos dice si un operativo salió bien. Un operativo salió bien si fue barato y su
+protagonista estaba en condiciones.
+
+fueBienRealizado(Operativo):-
+esBarato(Operativo),
+protagonista(Personaje, Operativo),
+estabaEnCondiciones(Personaje).
+
+estabaEnCondiciones(Personaje):-
+personaje(Personaje, planificador(Inteligencia),
+Inteligencia > 100.
+
+estabaEnCondiciones(Personaje):-
+personaje(Personaje, tecnico(Recursos),
+length(Recursos, CantidadRecursos),
+CantidadRecursos >= 2.
+
+estabaEnCondiciones(Personaje):-
+personaje(Personaje, caracterizador(conzzeti, _).
+
+estabaEnCondiciones(Personaje):-
+personaje(Personaje, investigador(_).
+
+El protagonista está en condiciones dependiendo de su rol:
+● El planificador debe tener una inteligencia mayor a 100;
+● el técnico debe tener al menos dos recursos;
+● el apodo del caracterizador debe ser cozzeti;
+● el investigador siempre está en condiciones;
+● el extra nunca está en condiciones.
+
+REPETI LOGICA ARRIBA
+
+
+6) hayQueDespedirlo/1: que nos dice si todos los operativos en los que un personaje fue protagonista no
+fueron bien realizados.
+
+hayQueDespedirlo(Personaje):-
+personaje(Personaje,_),
+forall(protagonista(Personaje, Operativo), not(fueBienRealizado(Operativo)).
